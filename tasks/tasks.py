@@ -7,11 +7,10 @@ from accounts.models import CustomUser
 
 @periodic_task(run_every=timedelta(minutes=1))
 def every_minute():
-    users = CustomUser.objects.all()
+    users = CustomUser.objects.filter(report_time__startswith=datetime.now().strftime('%H:%M'))
     for user in users:
-        if user.report_time.strftime('%H:%M') == datetime.now().strftime('%H:%M'):
-            tasks_status = {STATUS_CHOICES[i][0]: Task.objects.filter(status=STATUS_CHOICES[i][0]).count() for i in range(len(STATUS_CHOICES))}
-            email_body = f'''Your Tasks Summary:
+        tasks_status = {STATUS_CHOICES[i][0]: Task.objects.filter(status=STATUS_CHOICES[i][0], user=user.user).count() for i in range(len(STATUS_CHOICES))}
+        email_body = f'''Your Tasks Summary:
         {tasks_status}
-            '''
-            send_mail('Testing Content', email_body, 'admin@task_manager.com', ['users@task_manager.com'])
+        '''
+        send_mail('Testing Content', email_body, 'admin@task_manager.com', ['users@task_manager.com'])
