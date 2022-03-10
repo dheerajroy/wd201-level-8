@@ -9,6 +9,7 @@ from accounts.models import CustomUser
 def every_minute():
     users = CustomUser.objects.filter(report_time__lte=datetime.now().time(), last_report_sent__lt=datetime.now().date())
     for user in users:
+        user.last_report_sent = datetime.now().date()
         tasks_status = {STATUS_CHOICES[i][0]: Task.objects.filter(status=STATUS_CHOICES[i][0], user=user.user).count() for i in range(len(STATUS_CHOICES))}
         email_body = f'''Your Tasks Summary:
         {tasks_status}
